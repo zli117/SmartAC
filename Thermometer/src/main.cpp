@@ -65,8 +65,8 @@ float h, t;
 int watch_counter = 0;
 String days[7] = {"Sun ", "Mon ", "Tue ", "Wed ", "Thr ", "Fri ", "Sat "};
 
-const char* ssid     = "TP-LINK_DF22";
-const char* password = "qwertyuiop!1";
+const char* ssid     = "*************";
+const char* password = "*************";
 
 void init_timer () {
     os_timer_disarm(&timer);

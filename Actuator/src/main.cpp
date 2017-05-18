@@ -11,8 +11,8 @@
 #define PORT 12290
 #define TIMEOUT 800
 
-const char* ssid     = "TP-LINK_DF22";
-const char* password = "qwertyuiop!1";
+const char* ssid     = "*************";
+const char* password = "*************";
 
 int detach_timer = 0;
 
