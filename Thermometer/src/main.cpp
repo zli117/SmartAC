@@ -41,6 +41,7 @@
 #define PORT 12290
 #define IDLEN 7
 #define TIMEOUT 800
+#define WIFITOUT 30
 
 void clock(void *arg);
 void display_time(uint32_t seconds);
@@ -58,15 +59,12 @@ WiFiClient client;
 char id[IDLEN + 1];
 
 bool flag = false, update_screen = true, update_time = false, update_temp = false,
-     log_flag = false, log_ok = false, watch_dog = true, server_ok = true;
+     log_flag = false, log_ok = false, watch_dog = true, server_ok = true, wifi_ok = false;
 os_timer_t timer, ntp_up_timer, log_timer, watch_dog_timer;
 uint32_t prev_timer = 1, seconds = 0, day;
 float h, t;
 int watch_counter = 0;
 String days[7] = {"Sun ", "Mon ", "Tue ", "Wed ", "Thr ", "Fri ", "Sat "};
-
-const char* ssid     = "*************";
-const char* password = "*************";
 
 void init_timer () {
     os_timer_disarm(&timer);
@@ -103,17 +101,28 @@ void setup ()
     dht.begin();
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    delay(500);
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
+    do {
+        int wificlock = 0;
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(500);
+            Serial.print(".");
+            if (wificlock ++ > WIFITOUT) {
+                server_ok = false;
+                break;
+            }
+        }
 
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+        if (WiFi.status() == WL_CONNECTED) {
+                Serial.println("");
+                Serial.println("WiFi connected");
+                Serial.println("IP address: ");
+                Serial.println(WiFi.localIP());
+                wifi_ok = true;
+                break;
+        }
+    } while(WiFi.beginSmartConfig());
 
     timeClient.begin();
     timeClient.update();
@@ -134,7 +143,7 @@ void loop () {
         interrupts();
     }
 
-    if (update_time) {
+    if (wifi_ok && update_time) {
 
         timeClient.update();
         Serial.println("Time updated");
@@ -162,7 +171,7 @@ void loop () {
         interrupts();
     }
 
-    if (log_flag && log_ok && server_ok) {
+    if (wifi_ok && log_flag && log_ok && server_ok) {
 
         String msg = String(id) + "," + String(t, 2) + "," + String(h, 2);
         WiFiClient client;
@@ -181,7 +190,7 @@ void loop () {
         log_flag = false;
     }
 
-    if (!log_ok && server_ok) {     // load the id from EEPROM or get one from server
+    if (wifi_ok && !log_ok && server_ok) {     // load the id from EEPROM or get one from server
         uint8_t value = EEPROM.read(0);
 
         if (value == 0xEF) {
