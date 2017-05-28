@@ -25,6 +25,8 @@ class MyServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 if len(self.server.t_queue) > 0 and self.server.t_set != None:
                     average = sum(self.server.t_queue) / float(len(self.server.t_queue))
 
+                    print("average = ", average, end=" ")
+
                     if average > (self.server.t_set + 1) and not self.server.on:
                         self.request.send("0") # 0: turn on
                         self.server.on = True
@@ -73,8 +75,10 @@ class MyServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 if __name__ == '__main__':
     server = MyServer(("192.168.1.103", 12290))
     t = threading.Thread(target=server.serve_forever)
-    # t.setDaemon(True) # don't hang on exit
+    t.setDaemon(True)
     t.start()
+    while True:
+        pass
 
 
 
