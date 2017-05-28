@@ -2,8 +2,9 @@ from __future__ import print_function
 import SocketServer
 import collections
 import random
+import threading
 
-class MyServer(SocketServer.TCPServer):
+class MyServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
     class RequestHandler(SocketServer.BaseRequestHandler):
 
@@ -37,6 +38,7 @@ class MyServer(SocketServer.TCPServer):
                         return
 
                 self.request.send("2") # 2: hold
+                print("hold")
                 return
 
             if len(data) == 2 and data[0] == "set":
@@ -47,25 +49,32 @@ class MyServer(SocketServer.TCPServer):
                 print("set temperature to %f" % self.server.t_set)
                 return
 
-            if len(data) == 2:
+            if len(data) == 3:
 
                 if data[1] == "nan":
                     return
 
                 id = data[0]
-                self.server.t_queue.append(float(data[1]))
-                self.server.h_queue.append(float(data[1]))
+                t = float(data[1])
+                h = float(data[2])
+                print("id = %s, t = %f, h = %f" % (id, t, h))
+                self.server.t_queue.append(t)
+                self.server.h_queue.append(h)
+
 
     def __init__(self, server_address, handler_class=RequestHandler, bind_and_activate=True, smooth_len=60):
-        SocketServer.TCPServer.__init__(self, server_address, handler_class, bind_and_activate)
         self.h_queue = collections.deque([], smooth_len)
         self.t_queue = collections.deque([], smooth_len)
         self.on = False
         self.t_set = None
+        self.allow_reuse_address = True
+        SocketServer.TCPServer.__init__(self, server_address, handler_class, bind_and_activate)
 
 if __name__ == '__main__':
     server = MyServer(("192.168.1.103", 12290))
-    server.serve_forever()
+    t = threading.Thread(target=server.serve_forever)
+    # t.setDaemon(True) # don't hang on exit
+    t.start()
 
 
 
