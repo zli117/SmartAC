@@ -10,9 +10,7 @@
 #define IPADDR "192.168.1.103"
 #define PORT 12290
 #define TIMEOUT 800
-
-const char* ssid     = "*************";
-const char* password = "*************";
+#define WIFITOUT 30
 
 int detach_timer = 0;
 
@@ -30,22 +28,39 @@ void init_timer() {
 }
 
 void setup () {
+
+    // set the servo signal pin to high to prevent self rotation
+    pinMode(D1, OUTPUT);
+    digitalWrite(D1, LOW);
+    delay(1000);
+    pinMode(D5, OUTPUT);
+    digitalWrite(D5, HIGH);
     // Start Serial
     Serial.begin(9600);
     Serial.println("started");
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    delay(500);
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
+    do {
+        int wificlock = 0;
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(500);
+            Serial.print(".");
+            if (wificlock ++ > WIFITOUT) {
+                break;
+            }
+        }
 
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+        if (WiFi.status() == WL_CONNECTED) {
+                Serial.println("");
+                Serial.println("WiFi connected");
+                Serial.println("IP address: ");
+                Serial.println(WiFi.localIP());
+                break;
+        }
+        Serial.println(WiFi.beginSmartConfig());
+    } while(1);
 
     init_timer();
 }
