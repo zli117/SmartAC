@@ -13,5 +13,9 @@ A smart AC controller implemented with esp8266 and raspberry pi
     - `make upload`
  - For the server
     - `cd Server`
-    - `python server.py [-h] [--verbose] [-ip IP] [-port PORT]`
+    - `python server.py [-h] [--verbose] [-ip IP] [-port PORT]`'
+    
+# Wiring
+ - Thermometer
+   ![Thermometer](Thermomter.png)
  
