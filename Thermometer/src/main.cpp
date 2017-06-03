@@ -43,6 +43,11 @@
 #define TIMEOUT 800
 #define WIFITOUT 30
 
+#define SET_TIMER(timer, func, period)      \
+    os_timer_disarm(&timer);                \
+    os_timer_setfn(&timer, func, NULL);     \
+    os_timer_arm(&timer, period, true);
+
 void clock(void *arg);
 void display_time(uint32_t seconds);
 void display_temperature(float h, float t);
@@ -67,21 +72,11 @@ int watch_counter = 0;
 String days[7] = {"Sun ", "Mon ", "Tue ", "Wed ", "Thr ", "Fri ", "Sat "};
 
 void init_timer () {
-    os_timer_disarm(&timer);
-    os_timer_setfn(&timer, clock, NULL);
-    os_timer_arm(&timer, 500, true);
 
-    os_timer_disarm(&ntp_up_timer);
-    os_timer_setfn(&ntp_up_timer, timecorrect, NULL);
-    os_timer_arm(&ntp_up_timer, 1000 * 3600, true);
-
-    os_timer_disarm(&log_timer);
-    os_timer_setfn(&log_timer, log2Server, NULL);
-    os_timer_arm(&log_timer, 1000, true);
-
-    os_timer_disarm(&watch_dog_timer);
-    os_timer_setfn(&watch_dog_timer, watchdog, NULL);
-    os_timer_arm(&watch_dog_timer, 4000, true);
+    SET_TIMER(timer, clock, 500)
+    SET_TIMER(ntp_up_timer, timecorrect, 1000 * 3600)
+    SET_TIMER(log_timer, log2Server, 1000)
+    SET_TIMER(watch_dog_timer, watchdog, 4000)
 }
 
 void setup ()

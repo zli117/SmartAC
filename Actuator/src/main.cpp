@@ -9,7 +9,7 @@
 #define LOWER 81
 #define IPADDR "192.168.1.103"
 #define PORT 12290
-#define TIMEOUT 800
+#define TIMEOUT 2000
 #define WIFITOUT 30
 
 int detach_timer = 0;
