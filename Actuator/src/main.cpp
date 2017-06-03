@@ -62,14 +62,19 @@ void setup () {
         Serial.println(WiFi.beginSmartConfig());
     } while(1);
 
-    init_timer();
+    // init_timer();
 }
 
 void loop () {
     WiFiClient client;
     IPAddress ipAddr;
     ipAddr.fromString(IPADDR);
-    client.connect(ipAddr, PORT);
+
+    if (!client.connect(ipAddr, PORT)) {
+        Serial.println("No connection");
+        delay(1000);
+        return;
+    }
 
     client.print("act");
 
@@ -83,15 +88,18 @@ void loop () {
     }
 
     char ret;
+    bool changed = true;
     client.read((uint8_t *)&ret, 1);
 
     switch(ret) {
         case '0': down(); break;
         case '1': up(); break;
-        default: break;
+        default: changed = false; break;
     }
-
-    delay(1000);
+    if (changed) {
+        delay(1000);
+        myservo.detach();
+    }
 }
 
 void up () {
