@@ -26,19 +26,19 @@ class MyServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
             if len(data) == 1 and data[0] == "act":
 
-                if len(self.server.t_queue) > 0 and self.server.t_set != None:
+                if len(self.server.t_queue) > 0 and self.server.t_low:
                     average = sum(self.server.t_queue) / float(len(self.server.t_queue))
                     if self.server.verbose:
                         print("average = ", average, end=" ")
 
-                    if average > (self.server.t_set + 1) and not self.server.on:
+                    if self.server.t_high != None and average > self.server.t_high and not self.server.on:
                         self.request.send("0") # 0: turn on
                         self.server.on = True
                         if self.server.verbose:
                             print("turned on")
                         return
 
-                    if average < (self.server.t_set - 1) and self.server.on:
+                    if self.server.t_low != None and average < self.server.t_low and self.server.on:
                         self.request.send("1") # 1: turn off
                         self.server.on = False
                         if self.server.verbose:
@@ -50,13 +50,16 @@ class MyServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                     print("hold")
                 return
 
-            if len(data) == 2 and data[0] == "set":
+            if len(data) == 3 and data[0] == "set":
                 try:
-                    self.server.t_set = float(data[1])
+                    if data[1] == "low":
+                        self.server.t_low = float(data[2])
+                    if data[1] == "high":
+                        self.server.t_high = float(data[2])
                 except Exception as e:
                     print(e)
                 if self.server.verbose:
-                    print("set temperature to %f" % self.server.t_set)
+                    print("set temperature to (%f, %f)" % (self.server.t_low, self.server.t_high))
                 return
 
             if len(data) == 3:
@@ -77,7 +80,8 @@ class MyServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.h_queue = collections.deque([], smooth_len)
         self.t_queue = collections.deque([], smooth_len)
         self.on = False
-        self.t_set = None
+        self.t_low = None
+        self.t_high  = None
         self.allow_reuse_address = True
         self.verbose = verbose
         SocketServer.TCPServer.__init__(self, server_address, handler_class, bind_and_activate)
