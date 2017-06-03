@@ -10,7 +10,8 @@
 #define IPADDR "192.168.1.103"
 #define PORT 12290
 #define TIMEOUT 2000
-#define WIFITOUT 30
+#define WIFITOUT 20
+#define SLEEP_SECONDS 10
 
 int detach_timer = 0;
 
@@ -20,6 +21,7 @@ os_timer_t timer;
 void up ();
 void down ();
 void clock (void *arg);
+void act();
 
 void init_timer() {
     os_timer_disarm(&timer);
@@ -62,10 +64,14 @@ void setup () {
         Serial.println(WiFi.beginSmartConfig());
     } while(1);
 
-    // init_timer();
+    act();
+
+    Serial.println("Goint to sleep");
+    ESP.deepSleep(SLEEP_SECONDS * 1000000);        // rememebr to wire GPIO 16 (D0) to RST pin
+
 }
 
-void loop () {
+void act() {
     WiFiClient client;
     IPAddress ipAddr;
     ipAddr.fromString(IPADDR);
@@ -97,9 +103,13 @@ void loop () {
         default: changed = false; break;
     }
     if (changed) {
-        delay(1000);
+        delay(2000);
         myservo.detach();
     }
+}
+
+void loop () {
+
 }
 
 void up () {
