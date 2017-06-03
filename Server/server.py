@@ -4,6 +4,7 @@ import collections
 import random
 import threading
 import argparse
+import time
 
 class MyServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
@@ -103,12 +104,8 @@ if __name__ == "__main__":
         exit(2)
 
     server = MyServer((args.ip, args.port), verbose=args.verbose)
-    t = threading.Thread(target=server.serve_forever)
-    t.setDaemon(True)
-    t.start()
-    while True:
-        pass
 
+    server.serve_forever()
 
 
            
