@@ -18,4 +18,7 @@ A smart AC controller implemented with esp8266 and raspberry pi
 # Wiring
  - Thermometer
    ![Thermometer](Thermomter.png)
+
+# The setup of the actuator
+![](20170603_165503.jpeg)
  
